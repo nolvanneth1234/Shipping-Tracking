@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping Tracker – New Hope Cambodia</title>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d0f12;
+  --surface:#161a1f;
+  --surface2:#1d2229;
+  --border:#272d36;
+  --border2:#323b47;
+  --text:#e8edf2;
+  --muted:#5a6474;
+  --muted2:#8a95a3;
+  --accent:#3b82f6;
+  --accent-dim:#1d3b6e;
+  --green:#22c55e;
+  --green-dim:#14532d;
+  --amber:#f59e0b;
+  --amber-dim:#78350f;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Kantumruy Pro',sans-serif;
+  --r:8px;
+}
+
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* ── Login Overlay ── */
+#login-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 32px; width: 100%; max-width: 360px;
+  text-align: center;
+}
+.login-card h1 { font-size: 20px; margin-bottom: 8px; }
+.login-card p { color: var(--muted2); font-size: 13px; margin-bottom: 24px; }
+.login-field { text-align: left; margin-bottom: 16px; }
+.login-field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--muted2); }
+.login-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text); padding: 10px; font-family: var(--sans); outline: none;
+}
+.login-input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%; background: var(--accent); color: white; border: none; border-radius: 6px;
+  padding: 12px; font-weight: 700; cursor: pointer; transition: background .15s; margin-top: 8px;
+}
+.login-btn:hover { background: #2563eb; }
+
+/* ── Header ── */
+header{
+  border-bottom:1px solid var(--border);
+  padding:0 28px;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);
+  position:sticky;top:0;z-index:200;
+}
+.h-brand{display:flex;align-items:center;gap:10px}
+.h-logo{
+  width:32px;height:32px;background:var(--accent);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.h-logo svg{width:16px;height:16px;fill:white}
+.h-name{font-size:14px;font-weight:700;letter-spacing:.01em}
+.h-sub{font-size:11px;color:var(--muted2);font-weight:400}
+
+.h-right { display: flex; align-items: center; gap: 20px; }
+.user-profile { display: flex; align-items: center; gap: 10px; }
+.user-info { text-align: right; }
+.user-name { font-size: 12px; font-weight: 700; }
+.user-role { font-size: 10px; color: var(--muted2); }
+.logout-btn {
+  background: none; border: 1px solid var(--border2); color: var(--muted2);
+  padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;
+}
+.logout-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+.h-month{
+  font-family:var(--mono);font-size:12px;color:var(--muted2);
+  display:flex;align-items:center;gap:8px;
+}
+.month-nav{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 8px;
+}
+.mnav-btn{
+  background:none;border:none;color:var(--muted2);cursor:pointer;
+  font-size:16px;line-height:1;padding:0 2px;transition:color .15s;
+}
+.mnav-btn:hover{color:var(--text)}
+#month-label{font-family:var(--mono);font-size:12px;color:var(--text);min-width:80px;text-align:center}
+
+/* ── Layout ── */
+main{max-width:1100px;margin:0 auto;padding:24px 20px 60px;display:grid;gap:20px}
+
+/* ── KPI strip ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 18px;
+}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-bottom:6px}
+.kpi-val{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text)}
+.kpi-val.blue{color:var(--accent)}
+.kpi-val.green{color:var(--green)}
+.kpi-val.amber{color:var(--amber)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ── Panel ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.panel-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{font-size:13px;font-weight:700;letter-spacing:.01em}
+.panel-hint{font-size:11px;color:var(--muted)}
+
+/* ── Two-col ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+/* ── Entry form ── */
+.entry-body{padding:16px 18px;display:grid;gap:12px}
+.field{display:grid;gap:5px}
+.field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2)}
+.field select,.field input{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;color:var(--text);
+  font-family:var(--sans);font-size:13px;padding:8px 10px;width:100%;
+  outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.field select:focus,.field input:focus{border-color:var(--accent)}
+.pkg-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pkg-item{display:grid;gap:4px}
+.pkg-item label{font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.pkg-item input{font-family:var(--mono)}
+.save-btn{
+  background:var(--accent);color:white;border:none;border-radius:6px;
+  padding:10px;font-family:var(--sans);font-size:13px;font-weight:700;
+  cursor:pointer;transition:background .15s;letter-spacing:.02em;
+}
+.save-btn:hover{background:#2563eb}
+.save-btn:active{background:#1d4ed8}
+
+/* ── Daily table ── */
+.table-wrap{overflow-x:auto;max-height:340px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  background:var(--surface2);padding:9px 12px;
+  text-align:left;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--muted2);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+th.r,td.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:9px 12px;font-size:12px}
+td.mono{font-family:var(--mono);font-size:11px}
+.emp-tag{
+  display:inline-block;padding:2px 7px;border-radius:4px;
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  letter-spacing:.04em;
+}
+.e0{background:rgba(59,130,246,.18);color:#93c5fd}
+.e1{background:rgba(34,197,94,.18);color:#86efac}
+.e2{background:rgba(245,158,11,.18);color:#fcd34d}
+.del-btn{
+  background:none;border:1px solid var(--border2);color:var(--muted);
+  border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;
+  transition:all .1s;font-family:var(--mono);
+}
+.del-btn:hover{border-color:#ef4444;color:#ef4444}
+.empty-row td{text-align:center;color:var(--muted);padding:24px;font-size:12px}
+
+/* ── Chart ── */
+.chart-wrap{padding:16px 18px 12px}
+.chart-emp-tabs{display:flex;gap:6px;margin-bottom:14px}
+.emp-tab{
+  padding:5px 12px;border-radius:5px;border:1px solid var(--border2);
+  background:none;font-family:var(--sans);font-size:11px;font-weight:600;
+  cursor:pointer;color:var(--muted2);transition:all .15s;
+}
+.emp-tab.a0.on,.emp-tab.a0:hover{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.4)}
+.emp-tab.a1.on,.emp-tab.a1:hover{background:rgba(34,197,94,.18);color:#86efac;border-color:rgba(34,197,94,.4)}
+.emp-tab.a2.on,.emp-tab.a2:hover{background:rgba(245,158,11,.18);color:#fcd34d;border-color:rgba(245,158,11,.4)}
+.emp-tab.all.on,.emp-tab.all:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.chart-canvas-wrap{position:relative;height:180px}
+canvas{width:100%!important}
+.chart-x{display:flex;padding:4px 0 0;gap:0}
+.chart-x span{flex:1;text-align:center;font-size:9px;font-family:var(--mono);color:var(--muted)}
+
+/* ── Monthly summary ── */
+.emp-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 18px}
+.emp-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:14px;
+}
+.ec-name{font-size:12px;font-weight:700;margin-bottom:2px}
+.ec-tons{font-family:var(--mono);font-size:18px;font-weight:600;margin:6px 0 2px}
+.ec-usd{font-size:11px;color:var(--muted2);font-family:var(--mono)}
+.ec-bar{height:3px;border-radius:2px;margin-top:10px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--green-dim);border:1px solid var(--green);
+  color:var(--green);border-radius:6px;padding:10px 16px;
+  font-size:12px;font-weight:600;font-family:var(--mono);
+  opacity:0;transform:translateY(8px);
+  transition:all .2s;pointer-events:none;z-index:999;
+}
+#toast.show{opacity:1;transform:none}
+
+@media(max-width:700px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .emp-summary{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="h-logo" style="margin: 0 auto 16px; width: 48px; height: 48px;">
+      <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zm-.5 1.5L21.96 12H17V9.5h2.5zM6 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm13 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
+    </div>
+    <h1>ចូលប្រើប្រាស់</h1>
+    <p>សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់របស់អ្នក</p>
+    <div class="login-field">
+      <label>ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
+      <input type="text" id="login-username" class="login-input" placeholder="ឧទាហរណ៍: sreyneag">
+    </div>
+    <button class="login-btn" onclick="login()">ចូល (Login)</button>
+    <p style="margin-top: 16px; font-size: 11px;">សាកល្បង: sreyneag, vanneth, veasna</p>
+  </div>
+</div>
+
+<header>
+  <div class="h-brand">
+    <div class="h-logo">
+      <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zm-.5 1.5L21.96 12H17V9.5h2.5zM6 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm13 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
+    </div>
+    <div>
+      <div class="h-name">New Hope Cambodia</div>
+      <div class="h-sub">ប្រព័ន្ធតាមដានការដឹកជញ្ជូន</div>
+    </div>
+  </div>
+  
+  <div class="h-month">
+    <div class="month-nav">
+      <button class="mnav-btn" onclick="changeMonth(-1)">‹</button>
+      <span id="month-label"></span>
+      <button class="mnav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="h-right">
+    <div class="user-profile">
+      <div class="user-info">
+        <div class="user-name" id="display-user-name">—</div>
+        <div class="user-role" id="display-user-role">បុគ្គលិកដឹកជញ្ជូន</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">ចាកចេញ</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- KPI -->
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-label">សរុបតោន / Total Tons</div><div class="kpi-val blue" id="k-tons">0</div><div class="kpi-sub">ខែ​នេះ this month</div></div>
+    <div class="kpi"><div class="kpi-label">ចំណូល / Earnings</div><div class="kpi-val green" id="k-usd">$0</div><div class="kpi-sub">USD incentive</div></div>
+    <div class="kpi"><div class="kpi-label">ថ្ងៃសកម្ម / Active Days</div><div class="kpi-val" id="k-days">0</div><div class="kpi-sub">days recorded</div></div>
+    <div class="kpi"><div class="kpi-label">ថ្ងៃខ្ពស់ / Peak Day</div><div class="kpi-val amber" id="k-peak">—</div><div class="kpi-sub" id="k-peak-sub">tons</div></div>
+  </div>
+
+  <!-- Chart full width -->
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">ក្រាហ្វតោនប្រចាំថ្ងៃ · Daily Tons</span>
+      <div class="chart-emp-tabs" id="emp-tabs-container">
+        <button class="emp-tab all on" data-f="all" onclick="setFilter('all',this)">ទាំងអស់</button>
+        <button class="emp-tab a0" data-f="0" onclick="setFilter(0,this)">Srey Neag</button>
+        <button class="emp-tab a1" data-f="1" onclick="setFilter(1,this)">Vanneth</button>
+        <button class="emp-tab a2" data-f="2" onclick="setFilter(2,this)">Khem Veasna</button>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-canvas-wrap"><canvas id="chart"></canvas></div>
+      <div class="chart-x" id="chart-x"></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Entry -->
+    <div class="panel" id="entry-panel">
+      <div class="panel-head">
+        <span class="panel-title">បញ្ចូលទិន្នន័យ · Enter Data</span>
+        <span class="panel-hint">ថ្ងៃ / day + បុគ្គលិក + កញ្ចប់</span>
+      </div>
+      <div class="entry-body">
+        <div class="field">
+          <label>ថ្ងៃ / Day</label>
+          <input type="number" id="inp-day" min="1" max="31" placeholder="1–31">
+        </div>
+        <div class="field" id="emp-select-field">
+          <label>បុគ្គលិក / Employee</label>
+          <select id="inp-emp">
+            <option value="0">Srey Neag</option>
+            <option value="1">Vanneth</option>
+            <option value="2">Khem Veasna</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ចំនួនកញ្ចប់ / Bags</label>
+          <div class="pkg-row">
+            <div class="pkg-item"><label>20 kg</label><input type="number" id="inp-20" min="0" placeholder="0"></div>
+            <div class="pkg-item"><label>25 kg</label><input type="number" id="inp-25" min="0" placeholder="0"></div>
+            <div class="pkg-item"><label>30 kg</label><input type="number" id="inp-30" min="0" placeholder="0"></div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">រក្សាទុក · Save</button>
+      </div>
+    </div>
+
+    <!-- Monthly summary -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">សង្ខេបបុគ្គលិក · Staff Summary</span>
+      </div>
+      <div class="emp-summary" id="emp-summary"></div>
+    </div>
+  </div>
+
+  <!-- Log table -->
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">កំណត់ត្រា · Log</span>
+      <span class="panel-hint" id="log-count">0 entries</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>ថ្ងៃ</th><th>បុគ្គលិក</th>
+          <th class="r">20kg</th><th class="r">25kg</th><th class="r">30kg</th>
+          <th class="r">Tons</th><th class="r">USD</th><th></th>
+        </tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="toast">✓ រក្សាទុករួច · Saved</div>
+
+<script>
+// ── Config ──
+const EMPS = [
+  {id: 0, name:'Srey Neag',   username: 'sreyneag', cls:'e0', acls:'a0', color:'#3b82f6'},
+  {id: 1, name:'Vanneth',     username: 'vanneth',  cls:'e1', acls:'a1', color:'#22c55e'},
+  {id: 2, name:'Khem Veasna', username: 'veasna',   cls:'e2', acls:'a2', color:'#f59e0b'},
+];
+const RATE = 0.07; // USD per ton
+const KM_MONTHS = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+// ── State ──
+let cur = {y:2026, m:4}; // April 2026
+let filter = 'all';
+let db = loadDB();
+let currentUser = null;
+
+// ── Auth ──
+function login() {
+  const username = document.getElementById('login-username').value.toLowerCase().trim();
+  const user = EMPS.find(u => u.username === username);
+  
+  if (user) {
+    currentUser = user;
+    localStorage.setItem('nhc_user', JSON.stringify(user));
+    document.getElementById('login-overlay').style.display = 'none';
+    setupUserUI();
+    render();
+  } else {
+    alert('ឈ្មោះអ្នកប្រើប្រាស់មិនត្រឹមត្រូវ! (Incorrect username)');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('nhc_user');
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-username').value = '';
+}
+
+function checkAuth() {
+  const savedUser = localStorage.getItem('nhc_user');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    document.getElementById('login-overlay').style.display = 'none';
+    setupUserUI();
+  } else {
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
+}
+
+function setupUserUI() {
+  if (!currentUser) return;
+  
+  document.getElementById('display-user-name').textContent = currentUser.name;
+  
+  // Update entry form to auto-select current user and hide selection if not admin (simulated)
+  const empSelect = document.getElementById('inp-emp');
+  empSelect.value = currentUser.id;
+  // For simplicity, we just keep the select but it's pre-filled. 
+  // In a real app, you might hide it.
+  
+  // Set filter to current user by default
+  filter = currentUser.id;
+  
+  // Update tabs to highlight only the current user
+  const tabs = document.querySelectorAll('.emp-tab');
+  tabs.forEach(t => {
+    const f = t.getAttribute('data-f');
+    if (f == currentUser.id) {
+      t.classList.add('on');
+    } else {
+      t.classList.remove('on');
+    }
+    
+    // Optional: Hide other tabs to only see own data
+    if (f !== 'all' && f != currentUser.id) {
+      t.style.display = 'none';
+    }
+  });
+}
+
+// ── DB ──
+function key(){return `nhc_${cur.y}_${cur.m}`}
+function loadDB(){
+  try{return JSON.parse(localStorage.getItem('nhc_db')||'{}')}catch{return{}}
+}
+function saveDB(){localStorage.setItem('nhc_db',JSON.stringify(db))}
+function getEntries(){
+  const all = db[key()]||[];
+  // Filter based on current user
+  if (filter === 'all') return all;
+  return all.filter(e => e.emp == filter);
+}
+function setEntries(arr){
+  // When saving, we need to update the full DB, not just the filtered view
+  const allEntries = db[key()] || [];
+  
+  if (filter === 'all') {
+    db[key()] = arr;
+  } else {
+    // Replace only entries for this user
+    const otherUsersEntries = allEntries.filter(e => e.emp != filter);
+    db[key()] = [...otherUsersEntries, ...arr].sort((a,b)=>a.day-b.day||a.emp-b.emp);
+  }
+  saveDB();
+}
+
+// ── Month nav ──
+function changeMonth(d){
+  cur.m+=d;
+  if(cur.m>12){cur.m=1;cur.y++}
+  if(cur.m<1){cur.m=12;cur.y--}
+  render();
+}
+function renderMonthLabel(){
+  document.getElementById('month-label').textContent=`${KM_MONTHS[cur.m-1]} ${cur.y}`;
+}
+
+// ── Save entry ──
+function saveEntry(){
+  const day=parseInt(document.getElementById('inp-day').value);
+  const emp=parseInt(document.getElementById('inp-emp').value);
+  const b20=parseInt(document.getElementById('inp-20').value)||0;
+  const b25=parseInt(document.getElementById('inp-25').value)||0;
+  const b30=parseInt(document.getElementById('inp-30').value)||0;
+  if(!day||day<1||day>31) return shake('inp-day');
+  if(!b20&&!b25&&!b30) return;
+  const tons=+(b20*0.02+b25*0.025+b30*0.03).toFixed(3);
+  const usd=+(tons*RATE).toFixed(2);
+  
+  // We always save to the main DB
+  const allEntries = db[key()] || [];
+  allEntries.push({id:Date.now(),day,emp,b20,b25,b30,tons,usd});
+  allEntries.sort((a,b)=>a.day-b.day||a.emp-b.emp);
+  db[key()] = allEntries;
+  saveDB();
+  
+  // clear bags
+  ['inp-20','inp-25','inp-30'].forEach(id=>document.getElementById(id).value='');
+  showToast();
+  render();
+}
+function shake(id){
+  const el=document.getElementById(id);
+  el.style.borderColor='#ef4444';
+  setTimeout(()=>el.style.borderColor='',1000);
+}
+function deleteEntry(id){
+  const allEntries = db[key()] || [];
+  db[key()] = allEntries.filter(e=>e.id!==id);
+  saveDB();
+  render();
+}
+
+// ── Render ──
+function render(){
+  renderMonthLabel();
+  const entries = getEntries();
+  
+  // KPIs
+  const totalTons = entries.reduce((s,e)=>s+e.tons,0);
+  const totalUsd = entries.reduce((s,e)=>s+e.usd,0);
+  const activeDays = new Set(entries.map(e=>e.day)).size;
+  const peak = entries.length ? Math.max(...entries.map(e=>e.tons)) : 0;
+
+  document.getElementById('k-tons').textContent = totalTons.toFixed(2);
+  document.getElementById('k-usd').textContent = `$${totalUsd.toFixed(2)}`;
+  document.getElementById('k-days').textContent = activeDays;
+  document.getElementById('k-peak').textContent = peak ? peak.toFixed(2) : '—';
+  document.getElementById('k-peak-sub').textContent = peak ? 'tons' : 'no data';
+
+  // Table
+  const tbody = document.getElementById('log-body');
+  if(!entries.length){
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="8">មិនទាន់មានទិន្នន័យសម្រាប់ខែនេះនៅឡើយទេ</td></tr>`;
+  } else {
+    tbody.innerHTML = entries.map(e => {
+      const emp = EMPS[e.emp];
+      return `<tr>
+        <td class="mono">${e.day}</td>
+        <td><span class="emp-tag ${emp.cls}">${emp.name}</span></td>
+        <td class="r mono">${e.b20||'—'}</td>
+        <td class="r mono">${e.b25||'—'}</td>
+        <td class="r mono">${e.b30||'—'}</td>
+        <td class="r mono" style="font-weight:600">${e.tons.toFixed(2)}</td>
+        <td class="r mono" style="color:var(--green)">$${e.usd.toFixed(2)}</td>
+        <td class="r"><button class="del-btn" onclick="deleteEntry(${e.id})">លុប</button></td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('log-count').textContent = `${entries.length} entries`;
+
+  // Summary Cards
+  const sumEl = document.getElementById('emp-summary');
+  // Only show summary for the filtered user or all if filter is 'all'
+  const summaryEmps = filter === 'all' ? EMPS : [EMPS[filter]];
+  
+  sumEl.innerHTML = summaryEmps.map(emp => {
+    const empEntries = (db[key()]||[]).filter(e => e.emp === emp.id);
+    const tons = empEntries.reduce((s,e)=>s+e.tons,0);
+    const usd = empEntries.reduce((s,e)=>s+e.usd,0);
+    const maxTons = Math.max(1, ...EMPS.map(ev => (db[key()]||[]).filter(e=>e.emp===ev.id).reduce((s,e)=>s+e.tons,0)));
+    const pct = Math.min(100, (tons/maxTons)*100);
+    
+    return `<div class="emp-card">
+      <div class="ec-name">${emp.name}</div>
+      <div class="ec-tons">${tons.toFixed(2)} <span style="font-size:10px;color:var(--muted)">Tons</span></div>
+      <div class="ec-usd">$${usd.toFixed(2)} <span style="font-size:10px;color:var(--muted)">Earned</span></div>
+      <div class="ec-bar" style="width:${pct}%;background:${emp.color}"></div>
+    </div>`;
+  }).join('');
+
+  drawChart();
+}
+
+// ── Filter ──
+function setFilter(f, btn){
+  filter = f;
+  const tabs = document.querySelectorAll('.emp-tab');
+  tabs.forEach(t => t.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+// ── Chart ──
+function drawChart(){
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+
+  const entries = db[key()] || [];
+  const daysInMonth = 31;
+  const days = Array.from({length:daysInMonth}, (_,i)=>i+1);
+  
+  // Clear
+  ctx.clearRect(0,0,rect.width,rect.height);
+
+  // Grid
+  ctx.strokeStyle = '#272d36';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let i=0; i<=4; i++){
+    const y = rect.height - (i * rect.height / 4);
+    ctx.moveTo(0, y);
+    ctx.lineTo(rect.width, y);
+  }
+  ctx.stroke();
+
+  // Data
+  const filteredEmps = filter === 'all' ? EMPS : [EMPS[filter]];
+  const maxVal = Math.max(5, ...entries.map(e=>e.tons)) * 1.2;
+
+  filteredEmps.forEach(emp => {
+    const empEntries = entries.filter(e => e.emp === emp.id);
+    const data = days.map(d => {
+      const dayEntries = empEntries.filter(e => e.day === d);
+      return dayEntries.reduce((s,e)=>s+e.tons, 0);
+    });
+
+    ctx.strokeStyle = emp.color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    
+    data.forEach((v, i) => {
+      const x = (i / (daysInMonth-1)) * rect.width;
+      const y = rect.height - (v / maxVal) * rect.height;
+      if(i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Fill
+    ctx.fillStyle = emp.color + '22';
+    ctx.lineTo((daysInMonth-1)/(daysInMonth-1)*rect.width, rect.height);
+    ctx.lineTo(0, rect.height);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  // X-axis labels
+  const xEl = document.getElementById('chart-x');
+  xEl.innerHTML = days.map(d => `<span>${d%5===0||d===1?d:''}</span>`).join('');
+}
+
+// ── Toast ──
+function showToast(){
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// ── Init ──
+window.addEventListener('resize', drawChart);
+
+// Load April 2026 seed data if empty
+if(!db[`nhc_2026_4`]){
+  const seed=[
+    {id:1,day:1,emp:0,b20:0,b25:88,b30:9572,tons:+(88*.025+9572*.03).toFixed(3)},
+    {id:2,day:2,emp:0,b20:0,b25:27,b30:4694,tons:+(27*.025+4694*.03).toFixed(3)},
+    {id:3,day:3,emp:0,b20:5,b25:5,b30:6231,tons:+(5*.02+5*.025+6231*.03).toFixed(3)},
+    {id:4,day:4,emp:0,b20:0,b25:180,b30:6447,tons:+(180*.025+6447*.03).toFixed(3)},
+    {id:5,day:5,emp:0,b20:15,b25:110,b30:3490,tons:+(15*.02+110*.025+3490*.03).toFixed(3)},
+    {id:6,day:6,emp:0,b20:5,b25:273,b30:8910,tons:+(5*.02+273*.025+8910*.03).toFixed(3)},
+    {id:7,day:7,emp:0,b20:0,b25:0,b30:7139,tons:+(7139*.03).toFixed(3)},
+    {id:8,day:8,emp:0,b20:0,b25:30,b30:8591,tons:+(30*.025+8591*.03).toFixed(3)},
+    {id:9,day:9,emp:0,b20:7,b25:70,b30:10239,tons:+(7*.02+70*.025+10239*.03).toFixed(3)},
+    {id:10,day:10,emp:0,b20:0,b25:30,b30:2745,tons:+(30*.025+2745*.03).toFixed(3)},
+    {id:11,day:11,emp:0,b20:5,b25:37,b30:6772,tons:+(5*.02+37*.025+6772*.03).toFixed(3)},
+    {id:12,day:12,emp:0,b20:0,b25:10,b30:8576,tons:+(10*.025+8576*.03).toFixed(3)},
+    {id:13,day:13,emp:0,b20:20,b25:28,b30:4077,tons:+(20*.02+28*.025+4077*.03).toFixed(3)},
+    {id:14,day:1,emp:1,b20:0,b25:235,b30:5776,tons:+(235*.025+5776*.03).toFixed(3)},
+    {id:15,day:2,emp:1,b20:0,b25:0,b30:4847,tons:+(4847*.03).toFixed(3)},
+    {id:16,day:3,emp:1,b20:0,b25:82,b30:6358,tons:+(82*.025+6358*.03).toFixed(3)},
+    {id:17,day:4,emp:1,b20:0,b25:45,b30:6252,tons:+(45*.025+6252*.03).toFixed(3)},
+    {id:18,day:5,emp:1,b20:0,b25:20,b30:2932,tons:+(20*.025+2932*.03).toFixed(3)},
+    {id:19,day:6,emp:1,b20:15,b25:127,b30:6288,tons:+(15*.02+127*.025+6288*.03).toFixed(3)},
+    {id:20,day:7,emp:1,b20:0,b25:73,b30:8630,tons:+(73*.025+8630*.03).toFixed(3)},
+    {id:21,day:8,emp:1,b20:0,b25:10,b30:8076,tons:+(10*.025+8076*.03).toFixed(3)},
+    {id:22,day:9,emp:1,b20:0,b25:185,b30:6300,tons:+(185*.025+6300*.03).toFixed(3)},
+    {id:23,day:10,emp:1,b20:0,b25:55,b30:5348,tons:+(55*.025+5348*.03).toFixed(3)},
+    {id:24,day:11,emp:1,b20:5,b25:20,b30:3272,tons:+(5*.02+20*.025+3272*.03).toFixed(3)},
+    {id:25,day:12,emp:1,b20:10,b25:70,b30:2317,tons:+(10*.02+70*.025+2317*.03).toFixed(3)},
+    {id:26,day:13,emp:1,b20:0,b25:0,b30:2991,tons:+(2991*.03).toFixed(3)},
+    {id:27,day:1,emp:2,b20:0,b25:123,b30:5793,tons:+(123*.025+5793*.03).toFixed(3)},
+    {id:28,day:2,emp:2,b20:0,b25:191,b30:2991,tons:+(191*.025+2991*.03).toFixed(3)},
+    {id:29,day:3,emp:2,b20:0,b25:20,b30:5787,tons:+(20*.025+5787*.03).toFixed(3)},
+    {id:30,day:4,emp:2,b20:0,b25:109,b30:4574,tons:+(109*.025+4574*.03).toFixed(3)},
+    {id:31,day:5,emp:2,b20:0,b25:0,b30:1001,tons:+(1001*.03).toFixed(3)},
+    {id:32,day:6,emp:2,b20:0,b25:12,b30:5862,tons:+(12*.025+5862*.03).toFixed(3)},
+    {id:33,day:7,emp:2,b20:0,b25:35,b30:4062,tons:+(35*.025+4062*.03).toFixed(3)},
+    {id:34,day:8,emp:2,b20:0,b25:61,b30:4667,tons:+(61*.025+4667*.03).toFixed(3)},
+    {id:35,day:9,emp:2,b20:1,b25:257,b30:4413,tons:+(1*.02+257*.025+4413*.03).toFixed(3)},
+    {id:36,day:10,emp:2,b20:2,b25:109,b30:5821,tons:+(2*.02+109*.025+5821*.03).toFixed(3)},
+    {id:37,day:11,emp:2,b20:0,b25:11,b30:4240,tons:+(11*.025+4240*.03).toFixed(3)},
+    {id:38,day:12,emp:2,b20:3,b25:145,b30:3206,tons:+(3*.02+145*.025+3206*.03).toFixed(3)},
+    {id:39,day:13,emp:2,b20:0,b25:29,b30:2676,tons:+(29*.025+2676*.03).toFixed(3)},
+  ];
+  seed.forEach(e=>{e.usd=+(e.tons*RATE).toFixed(2)});
+  db['nhc_2026_4']=seed;
+  saveDB();
+}
+
+// Initial check
+checkAuth();
+render();
+</script>
+</body>
+</html>
